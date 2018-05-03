@@ -6,6 +6,10 @@ const jwt = require('jsonwebtoken'); // To return a web token
 const keys = require('../../config/keys'); // to get the secret key
 const passport = require('passport');
 
+// Load input validation
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
+
 // Load user model
 const User = require('../../models/User');
 
@@ -22,12 +26,20 @@ router.get('/test', (req, res) => res.json({msg: "Users api test endpoint"}));
  * @access Public
  */
 router.post('/register', (req, res) => {
+    const { errors, isValid } = validateRegisterInput(req.body);
+
+    // Check validation
+    if(!isValid){
+        return res.status(400).json(errors);
+    }
+
     // Check if email already exists (with bodyParser package)
     User.findOne({ email: req.body.email })
         .then(user => {
             if(user) {
                 // Email already exists
-                return res.status(400).json({ email: 'Email already exists'});
+                errors.email = 'Email already exists';
+                return res.status(400).json(errors);
             } else {
                 // Make new user
                 const avatar = gravatar.url(req.body.email, {
@@ -67,6 +79,13 @@ router.post('/register', (req, res) => {
  * @access Public
  */
 router.post('/login', (req, res) => {
+    const { errors, isValid } = validateLoginInput(req.body);
+
+    // Check validation
+    if(!isValid){
+        return res.status(400).json(errors);
+    }
+
     const email = req.body.email;
     const password = req.body.password;
 
