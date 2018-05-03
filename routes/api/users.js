@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const gravatar = require('gravatar');
-const bcrypt = require('bcryptjs');
+const gravatar = require('gravatar'); // For getting user avatar
+const bcrypt = require('bcryptjs'); // For encrypting password
+const jwt = require('jsonwebtoken'); // To return a web token
+const keys = require('../../config/keys'); // to get the secret key
 
 // Load user model
 const User = require('../../models/User');
@@ -56,6 +58,59 @@ router.post('/register', (req, res) => {
             }
         })
 
+});
+
+/**
+ * @route POST /api/users/login
+ * @desc Login user / return JWT Token
+ * @access Public
+ */
+router.post('/login', (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    // Find user by email
+    User.findOne({ email })
+        .then(user => {
+            // Check if user is not found
+            if(!user){
+                return res.status(404).json({email: 'User not found'});
+            }
+
+            // Check password
+            bcrypt.compare(password, user.password) // password = plaintext, user.password = hashed
+                .then(match => {
+                    if(match){
+                        // User is valid, send auth token + payload
+
+                        // Creating a JWT payload
+                        const payload = {
+                            id: user.id,
+                            name: user.name,
+                            avatar: user.avatar,
+                        };
+
+
+                        // Sign token
+                        jwt.sign(
+                            payload,
+                            keys.secretOrKey,
+                            {
+                                expiresIn: 3600 /* One hour */
+                            },
+                            (err, token) => {
+                                res.json({
+                                    success: true,
+                                    token: "Bearer " + token,
+                                })
+                            }
+                        );
+                    }else{
+                        return res.status(400).json({password: "Incorrect Password"});
+                    }
+
+                })
+        })
 });
 
 module.exports = router;
