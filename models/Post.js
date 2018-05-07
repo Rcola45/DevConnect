@@ -34,10 +34,26 @@ const PostSchema = new Schema({
                 ref: 'users'
             },
             text: {
+                type: String,
+                required: true
+            },
+            name: {
+                type: String,
+                required: true
+            },
+            avatar: {
                 type: String
+            },
+            date: {
+                type: Date,
+                default: Date.now()
             }
         }
-    ]
+    ],
+    date: {
+        type: Date,
+        default: Date.now()
+    }
 });
 
-module.exports = User = mongoose.model('users', PostSchema);
+module.exports = User = mongoose.model('post', PostSchema);
