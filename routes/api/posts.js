@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const passport = require('passport');
+const isEmpty = require('../../validation/is-empty');
 
 // Models
 const Post = require('../../models/Post');
@@ -16,6 +17,37 @@ const validatePostInput = require('../../validation/post');
  * @access Public
  */
 router.get('/test', (req, res) => res.json({msg: "Posts api test endpoint"}));
+
+
+/**
+ * @route GET /api/posts
+ * @desc Get posts
+ * @access Public
+ */
+router.get('/', (req,res) => {
+    Post.find()
+        .sort({ date: -1 }) // Sorts by date
+        .then(posts => {
+            res.json(posts);
+        })
+        .catch(err => res.status(404).json({ noposts: 'No posts found' }));
+});
+
+
+/**
+ * @route GET /api/posts/:id
+ * @desc Get single post
+ * @access Public
+ */
+router.get('/:id', (req,res) => {
+    Post.findById( req.params.id )
+        .then(post => {
+                return res.json(post);
+        })
+        .catch(err => res.status(404).json({ noposts: 'No post found with that ID'}));
+});
+
+
 
 
 /**
@@ -40,6 +72,82 @@ router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     newPost.save().then(post => res.json(newPost));
 
     Post.create()
+});
+
+
+
+/**
+ * @route POST /api/posts/like/:id
+ * @desc Like a post
+ * @access Private
+ */
+router.post('/like/:id', passport.authenticate('jwt', {session:false}), (req,res) => {
+    Post.findById(req.params.id)
+        .then(post => {
+            // Check if user has already liked this post
+            if(post.likes.filter(like => like.user.toString() === req.user.id).length > 0){
+                return res.status(400).json({ alreadyliked: 'User has already liked this post'})
+            }
+
+            // Add user to likes array
+            post.likes.push({ user: req.user.id });
+
+            post.save()
+                .then(post => res.json(post));
+        })
+        .catch(err => res.status(404).json({ noposts: 'Post not found with that Id'}));
+
+});
+
+
+/**
+ * @route POST /api/posts/unlike/:id
+ * @desc Unlike a post
+ * @access Private
+ */
+router.post('/unlike/:id', passport.authenticate('jwt', {session:false}), (req,res) => {
+    Post.findById(req.params.id)
+        .then(post => {
+            // Check that user has previously liked this post
+            if(post.likes.filter(like => like.user.toString() === req.user.id).length === 0){
+                // User not there
+                return res.status(400).json({ notliked: 'User has not liked this post yet'})
+            }
+
+            // Add user to likes array
+            const removeIndex = post.likes
+                .map(item => item.user.toString())
+                .indexOf(req.user.id);
+
+            post.likes.splice(removeIndex, 1);
+
+            post.save().then(post => res.json(post));
+        })
+        .catch(err => res.status(404).json({ noposts: 'Post not found with that Id'}));
+
+});
+
+
+/**
+ * @route DELETE /api/posts/:id
+ * @desc Delete post
+ * @access Private
+ */
+router.delete('/:id', passport.authenticate('jwt', {session:false}), (req,res) => {
+    Post.findById(req.params.id)
+        .then(post => {
+            // Check for the post owner
+            if(post.user.toString() !== req.user.id ){
+                return res.status(401).json({ notauthorized: 'User not authorized'});
+            }else{
+                // User authorized
+                post.remove()
+                    .then(() => {
+                        res.json({ success: true })
+                    })
+                    .catch(err => res.status(404).json({ noposts: 'Post not found with that Id'}));
+            }
+        })
 });
 
 
