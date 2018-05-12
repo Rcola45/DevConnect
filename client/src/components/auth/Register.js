@@ -3,6 +3,7 @@ import classnames from 'classnames'; // Conditional classes
 import { connect } from 'react-redux'; // Connecting redux to component
 import { registeruser } from '../../actions/authActions';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 
 class Register extends Component {
     constructor() {
@@ -33,7 +34,7 @@ class Register extends Component {
             password2: this.state.password2,
         };
 
-        this.props.registeruser(newUser);
+        this.props.registeruser(newUser, this.props.history);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -163,4 +164,4 @@ const mapStateToProps = state => ({
     errors: state.errors,
 });
 
-export default connect(mapStateToProps, { registeruser })(Register);
+export default connect(mapStateToProps, { registeruser })(withRouter(Register));
