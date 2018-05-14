@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import classnames from 'classnames'; // Conditional classes
 import { connect } from 'react-redux'; // Connecting redux to component
-import { registeruser } from '../../actions/authActions';
+import { registerUser } from '../../actions/authActions';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 
@@ -164,4 +164,6 @@ const mapStateToProps = state => ({
     errors: state.errors,
 });
 
-export default connect(mapStateToProps, { registeruser })(withRouter(Register));
+export default connect(mapStateToProps, { registeruser: registerUser })(
+    withRouter(Register)
+);
