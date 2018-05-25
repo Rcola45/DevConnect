@@ -1,5 +1,5 @@
 # DevConnect
-Tutorial of Udemy course [MERN Stack Front to Back](https://www.udemy.com/mern-stack-front-to-back/learn/v4/overview) by [Brad Traversy](https://www.udemy.com/user/brad-traversy/)
+Tutorial of Udemy course [MERN Stack Front to Back](https://www.udemy.com/mern-stack-front-to-back/learn/v4/overview) by [Brad Traversy](https://www.udemy.com/user/brad-traversy/). Code here is being written as the tutorials are completed.
 
 A social network for developers
 
